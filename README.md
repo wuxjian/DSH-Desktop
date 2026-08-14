@@ -89,3 +89,4 @@ npm run tauri build
 - **最小化/关闭/拖拽无效**:Tauri 2 的窗口动作权限需在 `src-tauri/capabilities/default.json` 显式声明(已配置完整)。
 - **关窗后 dsh web 仍在运行**:只有本应用启动的 dsh web 才会随退出而停止;先于应用启动的服务(如命令行手动 `dsh web`)不会被误杀。
 - **修改图标**:替换根目录 `icon.svg` → `npm run icon` → 重新打包;应用内标题栏图标同步替换 `src/assets/logo.svg`。
+- **打包后任务栏/桌面仍显示旧图标**:图标文件变更后必须重跑构建脚本(已通过 `build.rs` 的 `rerun-if-changed` 保证);Windows 自身的图标缓存也会造成残留,重装后运行 `ie4uinit.exe -show` 或重启资源管理器;若应用被固定到任务栏,取消固定后再固定一次。
