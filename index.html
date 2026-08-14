@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DSH-Desktop</title>
+    <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <!-- 自绘标题栏:整条可拖拽,背景与内容同色,融为一体 -->
+    <header id="titlebar" data-tauri-drag-region>
+      <div class="titlebar-left" data-tauri-drag-region>
+        <img id="app-mark" src="/src/assets/logo.svg" alt="DSH-Desktop" data-tauri-drag-region />
+        <span class="app-title" data-tauri-drag-region>DSH-Desktop</span>
+      </div>
+      <div class="titlebar-controls">
+        <button id="btn-min" class="win-btn" title="最小化">&#x2212;</button>
+        <button id="btn-max" class="win-btn" title="最大化">&#x25A1;</button>
+        <button id="btn-close" class="win-btn win-btn-close" title="关闭">&#x2715;</button>
+      </div>
+    </header>
+
+    <!-- 内容区:iframe 内嵌 DSH Web,加载时显示遮罩 -->
+    <main id="stage">
+      <div id="overlay" class="overlay">
+        <div class="overlay-card">
+          <img class="overlay-logo" src="/src/assets/logo.svg" alt="" />
+          <div id="overlay-spinner" class="spinner"></div>
+          <h2 id="overlay-title">正在检测环境…</h2>
+          <p id="overlay-desc"></p>
+          <div class="logbox">
+            <pre id="log-pre"></pre>
+          </div>
+          <div class="overlay-actions">
+            <button id="btn-retry" class="btn btn-primary hidden">重试</button>
+            <button id="btn-install-dsh" class="btn btn-primary hidden">安装 dsh</button>
+            <button id="btn-open-nodejs" class="btn btn-primary hidden">前往安装 Node.js</button>
+          </div>
+        </div>
+      </div>
+      <iframe id="app-frame" title="DSH Web"></iframe>
+    </main>
+
+    <!-- 底部细状态条 -->
+    <footer id="statusbar">
+      <span class="status-item">
+        <span id="status-dot" class="dot"></span>
+        <span id="status-text">检测中…</span>
+      </span>
+      <span class="status-item" id="version-text">—</span>
+      <span class="spacer"></span>
+      <button id="btn-check" class="bar-btn" title="检查 dsh 新版本">检查更新</button>
+      <button id="btn-upgrade" class="bar-btn bar-btn-accent hidden">升级 dsh</button>
+      <button id="btn-restart" class="bar-btn hidden" title="重启本应用启动的 dsh web">重启服务</button>
+      <button id="btn-browser" class="bar-btn" title="在系统浏览器中打开 DSH Web" disabled>浏览器打开</button>
+    </footer>
+
+    <!-- 左上角升级提示 -->
+    <div id="toast" class="toast hidden" role="alert">
+      <span class="toast-icon">&#x1F195;</span>
+      <div class="toast-body">
+        <div class="toast-title">升级dsh新版本 <b id="toast-version"></b></div>
+        <div class="toast-sub">当前 <span id="toast-current"></span></div>
+      </div>
+      <div class="toast-actions">
+        <button id="toast-upgrade" class="btn btn-primary btn-sm">立即升级</button>
+        <button id="toast-later" class="btn btn-ghost btn-sm">稍后</button>
+      </div>
+    </div>
+  </body>
+</html>
