@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "icon": "tauri icon src-tauri/icons/source.svg",
+    "tauri": "cross-env TAURI_BUNDLER_TOOLS_GITHUB_MIRROR=https://ghfast.top/ tauri",
+    "icon": "cross-env TAURI_BUNDLER_TOOLS_GITHUB_MIRROR=https://ghfast.top/ tauri icon src-tauri/icons/source.svg",
     "package": "node scripts/package.mjs"
   },
   "dependencies": {
@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
-    "vite": "^6.0.3",
-    "typescript": "~5.6.2"
+    "cross-env": "^10.1.0",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3"
   }
 }
