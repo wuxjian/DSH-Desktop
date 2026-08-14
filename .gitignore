@@ -26,3 +26,6 @@ dist-ssr
 # 本地测试产物
 .playwright-cli/
 acceptance/
+
+# 打包输出
+release/
