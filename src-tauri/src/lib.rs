@@ -8,10 +8,18 @@ mod update;
 use state::AppState;
 use tauri::{Manager, RunEvent};
 
+/// Plugin that injects window-control buttons into the dsh web iframe.
+fn inject_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    tauri::plugin::Builder::<tauri::Wry>::new("dsh-inject")
+        .js_init_script_on_all_frames(include_str!("inject.js"))
+        .build()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(inject_plugin())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // A second launch focuses the existing window instead of opening
             // a new one (and spawning a second dsh web).

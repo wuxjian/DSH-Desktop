@@ -10,16 +10,6 @@
   </head>
 
   <body>
-    <!-- 自绘标题栏:整条可拖拽,背景与内容同色,融为一体 -->
-    <header id="titlebar" data-tauri-drag-region>
-      <div class="titlebar-left" data-tauri-drag-region></div>
-      <div class="titlebar-controls">
-        <button id="btn-min" class="win-btn" title="最小化">&#x2212;</button>
-        <button id="btn-max" class="win-btn" title="最大化">&#x25A1;</button>
-        <button id="btn-close" class="win-btn win-btn-close" title="关闭">&#x2715;</button>
-      </div>
-    </header>
-
     <!-- 内容区:iframe 内嵌 DSH Web,加载时显示遮罩 -->
     <main id="stage">
       <div id="overlay" class="overlay">

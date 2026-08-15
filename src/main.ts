@@ -59,7 +59,6 @@ const overlay = $("#overlay");
 const overlayTitle = $("#overlay-title");
 const overlayDesc = $("#overlay-desc");
 const overlaySpinner = $("#overlay-spinner");
-const overlayLogo = $(".overlay-logo");
 const logPre = $("#log-pre");
 const frame = $("#app-frame") as HTMLIFrameElement;
 const statusDot = $("#status-dot");
@@ -72,15 +71,12 @@ const btnBrowser = $("#btn-browser") as HTMLButtonElement;
 const btnRetry = $("#btn-retry");
 const btnInstallDsh = $("#btn-install-dsh");
 const btnOpenNodejs = $("#btn-open-nodejs");
-const btnMin = $("#btn-min") as HTMLButtonElement;
-const btnMax = $("#btn-max") as HTMLButtonElement;
-const btnClose = $("#btn-close") as HTMLButtonElement;
-const appWindow = getCurrentWindow();
 const toast = $("#toast");
 const toastVersion = $("#toast-version");
 const toastCurrent = $("#toast-current");
 const toastUpgrade = $("#toast-upgrade");
 const toastLater = $("#toast-later");
+const appWindow = getCurrentWindow();
 
 let status: StatusPayload | null = null;
 let themePref: "dark" | "light" | "system" = "system";
@@ -344,17 +340,6 @@ function checkNow() {
     });
 }
 
-/** Keep the maximize/restore glyph in sync with the window state. */
-async function updateMaxButton() {
-  try {
-    const maximized = await appWindow.isMaximized();
-    btnMax.innerHTML = maximized ? "&#x2750;" : "&#x25A1;";
-    btnMax.title = maximized ? "还原" : "最大化";
-  } catch (e) {
-    console.error("isMaximized failed:", e);
-  }
-}
-
 async function boot() {
   await listen<WebStatusEvent>("web-status-changed", (e) => onWebStatusChanged(e.payload.status));
   await listen<ThemeEvent>("theme-changed", (e) => applyTheme(e.payload.preference));
@@ -366,21 +351,32 @@ async function boot() {
     .matchMedia("(prefers-color-scheme: dark)")
     .addEventListener("change", () => applyTheme(themePref));
 
-  btnMin.addEventListener("click", () => void appWindow.minimize());
-  btnMax.addEventListener("click", () => {
-    void (async () => {
-      try {
-        if (await appWindow.isMaximized()) await appWindow.unmaximize();
-        else await appWindow.maximize();
-      } catch (e) {
-        console.error("toggle maximize failed:", e);
-      }
-      await updateMaxButton();
-    })();
+  // Handle window-control messages from the injected iframe bar
+  window.addEventListener("message", (e) => {
+    if (e.data?.source !== "dsh-dt") return;
+    switch (e.data.action) {
+      case "drag":
+        void appWindow.startDragging();
+        break;
+      case "minimize":
+        void appWindow.minimize();
+        break;
+      case "toggleMaximize":
+        void (async () => {
+          try {
+            if (await appWindow.isMaximized()) await appWindow.unmaximize();
+            else await appWindow.maximize();
+          } catch (err) {
+            console.error("toggle maximize failed:", err);
+          }
+        })();
+        break;
+      case "close":
+        void appWindow.close();
+        break;
+    }
   });
-  btnClose.addEventListener("click", () => void appWindow.close());
-  void appWindow.onResized(() => void updateMaxButton());
-  void updateMaxButton();
+
   btnRetry.addEventListener("click", () => void ensureRunning());
   btnInstallDsh.addEventListener("click", () => void runUpgrade("install"));
   btnOpenNodejs.addEventListener("click", () => void invoke("open_nodejs").catch(() => undefined));
