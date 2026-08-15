@@ -197,7 +197,7 @@ async function startDsh() {
   busy = true;
   try {
     showOverlay({
-      title: "正在启动 dsh web…",
+      title: "正在启动 Deepseek Harness…",
       desc: "首次启动可能需要下载依赖,请稍候",
       spinner: true,
     });
