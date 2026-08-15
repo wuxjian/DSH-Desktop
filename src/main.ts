@@ -130,7 +130,6 @@ function showOverlay(opts: OverlayOptions) {
   overlayTitle.textContent = opts.title;
   overlayDesc.textContent = opts.desc ?? "";
   overlaySpinner.classList.toggle("hidden", !opts.spinner);
-  overlayLogo.classList.toggle("hidden", !!opts.spinner);
   btnRetry.classList.toggle("hidden", !opts.retry);
   btnInstallDsh.classList.toggle("hidden", !opts.installDsh);
   btnOpenNodejs.classList.toggle("hidden", !opts.openNodejs);
