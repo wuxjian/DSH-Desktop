@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DSH-Desktop</title>
+    <title>DeepSeek Harness</title>
     <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
     <link rel="stylesheet" href="/src/styles.css" />
     <script type="module" src="/src/main.ts" defer></script>
@@ -12,10 +12,7 @@
   <body>
     <!-- 自绘标题栏:整条可拖拽,背景与内容同色,融为一体 -->
     <header id="titlebar" data-tauri-drag-region>
-      <div class="titlebar-left" data-tauri-drag-region>
-        <img id="app-mark" src="/src/assets/logo.svg" alt="DSH-Desktop" data-tauri-drag-region />
-        <span class="app-title" data-tauri-drag-region>DSH-Desktop</span>
-      </div>
+      <div class="titlebar-left" data-tauri-drag-region></div>
       <div class="titlebar-controls">
         <button id="btn-min" class="win-btn" title="最小化">&#x2212;</button>
         <button id="btn-max" class="win-btn" title="最大化">&#x25A1;</button>

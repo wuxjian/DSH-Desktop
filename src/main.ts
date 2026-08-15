@@ -218,7 +218,7 @@ async function ensureRunning() {
   if (!s.toolchain.nodeFound || !s.toolchain.npmFound) {
     showOverlay({
       title: "需要安装 Node.js",
-      desc: "未检测到 Node.js / npm。dsh 通过 npm 安装,请先安装 Node.js(包含 npm),然后重新打开 DSH-Desktop。",
+      desc: "未检测到 Node.js / npm。dsh 通过 npm 安装,请先安装 Node.js(包含 npm),然后重新打开 DeepSeek Harness。",
       openNodejs: true,
     });
     return;
@@ -396,7 +396,7 @@ async function boot() {
       .catch(() => undefined);
   });
   frame.addEventListener("load", () => {
-    if (status?.webStatus === "running") hideOverlay();
+    if (frameMounted && status?.webStatus === "running") hideOverlay();
   });
 
   try {

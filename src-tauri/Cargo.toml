@@ -1,7 +1,7 @@
 [package]
 name = "dsh-desktop"
 version = "0.1.0"
-description = "DSH-Desktop - frameless Tauri launcher that boots dsh web and embeds the DSH Web UI"
+description = "DeepSeek Harness - frameless Tauri launcher that boots dsh web and embeds the DSH Web UI"
 authors = ["wu_xj"]
 edition = "2021"
 
