@@ -59,6 +59,7 @@ const overlay = $("#overlay");
 const overlayTitle = $("#overlay-title");
 const overlayDesc = $("#overlay-desc");
 const overlaySpinner = $("#overlay-spinner");
+const overlayLogo = $(".overlay-logo");
 const logPre = $("#log-pre");
 const frame = $("#app-frame") as HTMLIFrameElement;
 const statusDot = $("#status-dot");
@@ -129,6 +130,7 @@ function showOverlay(opts: OverlayOptions) {
   overlayTitle.textContent = opts.title;
   overlayDesc.textContent = opts.desc ?? "";
   overlaySpinner.classList.toggle("hidden", !opts.spinner);
+  overlayLogo.classList.toggle("hidden", !!opts.spinner);
   btnRetry.classList.toggle("hidden", !opts.retry);
   btnInstallDsh.classList.toggle("hidden", !opts.installDsh);
   btnOpenNodejs.classList.toggle("hidden", !opts.openNodejs);
