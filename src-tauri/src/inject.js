@@ -10,13 +10,12 @@
   // ── CSS ─────────────────────────────────────────────────
   var style = document.createElement("style");
   style.textContent = [
+    // Push only the center column down 32px, not the sidebar
+    '[class*="centerCol"]{padding-top:32px!important;box-sizing:border-box!important;}',
     "#dsh-dt-bar{",
     "  position:fixed;top:0;left:0;right:0;z-index:99999;",
-    "  display:flex;align-items:center;height:32px;",
+    "  display:flex;align-items:center;justify-content:flex-end;height:32px;",
     "  -webkit-user-select:none;user-select:none;",
-    "}",
-    ".dsh-dt-drag{",
-    "  flex:1;height:100%;cursor:default;",
     "}",
     ".dsh-dt-btn{",
     "  width:40px;height:32px;border:none;border-radius:0;",
@@ -33,16 +32,15 @@
     ".dsh-dt-close:hover{background:#e81123!important;color:#fff!important;}",
   ].join("\n");
 
-  // ── Build the bar ──────────────────────────────────────
+  // ── Build the bar (buttons only; entire bar area is draggable) ──
   var bar = document.createElement("div");
   bar.id = "dsh-dt-bar";
   bar.innerHTML =
-    '<div class="dsh-dt-drag"></div>' +
     '<button class="dsh-dt-btn dsh-dt-min" title="最小化">\u2212</button>' +
     '<button class="dsh-dt-btn dsh-dt-max" title="最大化">\u25A1</button>' +
     '<button class="dsh-dt-btn dsh-dt-close" title="关闭">\u2715</button>';
 
-  // Button handlers
+  // Button click handlers
   bar.querySelector(".dsh-dt-min").addEventListener("click", function (e) {
     e.stopPropagation();
     send("minimize");
@@ -56,16 +54,32 @@
     send("close");
   });
 
-  // Drag: only on the drag handle area
-  var drag = bar.querySelector(".dsh-dt-drag");
-  drag.addEventListener("mousedown", function (e) {
+  // Drag + double-click on the entire bar (except buttons)
+  // e.detail: 1 = single click → drag, 2 = double click → toggle maximize
+  bar.addEventListener("mousedown", function (e) {
     if (e.button !== 0) return;
+    if (e.target.closest(".dsh-dt-btn")) return; // clicked on a button, skip
     e.preventDefault();
-    send("drag");
+    if (e.detail === 2) {
+      send("toggleMaximize");
+    } else {
+      send("drag");
+    }
   });
-  drag.addEventListener("dblclick", function () {
-    send("toggleMaximize");
-  });
+
+  // ── Position bar: left = sidebar width (tracked live) ──
+  function updateBarLeft() {
+    var sb = document.querySelector('[class*="sidebarCol"]');
+    if (sb) bar.style.left = sb.getBoundingClientRect().width + "px";
+  }
+
+  function observeSidebar() {
+    var sb = document.querySelector('[class*="sidebarCol"]');
+    if (!sb) return false;
+    updateBarLeft();
+    new ResizeObserver(updateBarLeft).observe(sb);
+    return true;
+  }
 
   // ── Inject ─────────────────────────────────────────────
   function mount() {
@@ -73,6 +87,16 @@
     if (!document.getElementById("dsh-dt-bar")) {
       document.body.appendChild(bar);
     }
+    if (!observeSidebar()) {
+      var domObs = new MutationObserver(function () {
+        if (observeSidebar()) domObs.disconnect();
+      });
+      domObs.observe(document.body || document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    }
+    window.addEventListener("resize", updateBarLeft);
   }
 
   if (document.body) {
