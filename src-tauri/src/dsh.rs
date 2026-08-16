@@ -233,13 +233,6 @@ pub fn kill_tree(pid: u32) {
         .status();
 }
 
-/// Called on app exit: stop the child we own, nothing else.
-pub fn kill_owned_on_exit(app: &AppHandle) {
-    if let Some(p) = app.state::<AppState>().child.lock().unwrap().take() {
-        kill_tree(p.pid);
-    }
-}
-
 /// Background thread: every 5s, reap an exited child and broadcast the web
 /// status when it changed.
 pub fn spawn_status_poller(app: AppHandle) {

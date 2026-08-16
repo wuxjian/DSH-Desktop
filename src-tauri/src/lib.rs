@@ -6,7 +6,7 @@ mod theme;
 mod update;
 
 use state::AppState;
-use tauri::{Manager, RunEvent};
+use tauri::Manager;
 
 /// Plugin that injects window-control buttons into the dsh web iframe.
 fn inject_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
@@ -55,9 +55,9 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app_handle, event| {
-            if let RunEvent::Exit = event {
-                dsh::kill_owned_on_exit(app_handle);
-            }
+        .run(|_app_handle, _event| {
+            // 关闭窗口/退出应用时不再终止 dsh web:让它留在后台继续运行,
+            // 下次打开桌面端时 spawn_web 会通过端口探测自动复用已运行的服务器。
+            // 需要停止时可在界面中点击「停止」。
         });
 }

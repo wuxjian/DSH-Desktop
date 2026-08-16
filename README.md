@@ -10,7 +10,7 @@ DSH 的 Windows 桌面启动器(Tauri 2 + Vanilla TS)。打开应用即自动启
 - **主题联动**:实时监听 `%USERPROFILE%\.dsh\settings.yaml` 的 `ui-theme.preference`(`dark` / `light` / `system`,system 跟随系统深浅色),标题栏与内嵌页面同步变色。
 - **版本检查与升级**:每天第一次启动检查新版本,之后每 6 小时后台再查;发现新版本时左上角弹出「升级dsh新版本 vX.Y.Z」提示,可一键执行 `npm install -g @deepseek-ai/dsh` 并自动重启服务;「稍后」当日不再提示。
 - **环境引导**:未检测到 Node.js / npm 时提示安装并提供 nodejs.org 入口;未安装 dsh 时提供一键安装按钮。
-- **干净退出**:关闭窗口即退出应用,并停止由本应用启动的 dsh web(外部启动的服务不受影响);单实例运行,重复启动只聚焦已有窗口。
+- **关闭不终止服务**:关闭窗口即退出应用,但 dsh web 留在后台继续运行(下次打开时自动复用);需要停止时在界面点击「停止」;单实例运行,重复启动只聚焦已有窗口。
 <img src="https://private-user-images.githubusercontent.com/18617209/636460037-097e8240-f944-4490-84cf-d8470e069b50.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODY3NjMyNjYsIm5iZiI6MTc4Njc2Mjk2NiwicGF0aCI6Ii8xODYxNzIwOS82MzY0NjAwMzctMDk3ZTgyNDAtZjk0NC00NDkwLTg0Y2YtZDg0NzBlMDY5YjUwLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA4MTUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwODE1VDAzMDI0NlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWQ2Nzg5ZTJhMWNkYjFmYjZmM2RkMzkwYmQ3MmUyYzJiZjUxMzgwNjljY2IwMThhZTE1MWYyYjNkYjg2OWY2ODYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.qDrC75B41g-immu8fQx-jDqhvcDs_Gq6RlUYxENaqdc">
 ## 环境要求
 
@@ -88,6 +88,6 @@ npm run tauri build
 ## 常见问题
 
 - **最小化/关闭/拖拽无效**:Tauri 2 的窗口动作权限需在 `src-tauri/capabilities/default.json` 显式声明(已配置完整)。
-- **关窗后 dsh web 仍在运行**:只有本应用启动的 dsh web 才会随退出而停止;先于应用启动的服务(如命令行手动 `dsh web`)不会被误杀。
+- **关窗后 dsh web 仍在后台运行(预期行为)**:关闭窗口只退出桌面端,dsh web 会继续在后台运行,下次打开桌面端时自动复用;若需彻底停止,在界面点击「停止」或执行 `taskkill /IM node.exe /F`(仅当没有其他 Node 程序)。
 - **修改图标**:替换根目录 `icon.svg` → `npm run icon` → 重新打包;应用内标题栏图标同步替换 `src/assets/logo.svg`。
 - **打包后任务栏/桌面仍显示旧图标**:图标文件变更后必须重跑构建脚本(已通过 `build.rs` 的 `rerun-if-changed` 保证);Windows 自身的图标缓存也会造成残留,重装后运行 `ie4uinit.exe -show` 或重启资源管理器;若应用被固定到任务栏,取消固定后再固定一次。
