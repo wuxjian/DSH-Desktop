@@ -29,7 +29,10 @@ interface StatusPayload {
   webPort: number;
   theme: "dark" | "light" | "system";
   update: UpdateInfo;
-  owned: boolean;
+  /** 服务是否可由桌面端重启/停止(本实例拉起,或端口由本机 node 进程承载) */
+  managed: boolean;
+  /** managed 为 false 时,占用 web 端口的进程映像名(如 WSL 中继 wslrelay.exe) */
+  externalProcess: string | null;
 }
 
 interface ProcLogEvent {
@@ -67,6 +70,7 @@ const versionText = $("#version-text");
 const btnCheck = $("#btn-check") as HTMLButtonElement;
 const btnUpgrade = $("#btn-upgrade");
 const btnRestart = $("#btn-restart");
+const btnStop = $("#btn-stop");
 const btnBrowser = $("#btn-browser") as HTMLButtonElement;
 const btnRetry = $("#btn-retry");
 const btnInstallDsh = $("#btn-install-dsh");
@@ -82,14 +86,16 @@ let status: StatusPayload | null = null;
 let themePref: "dark" | "light" | "system" = "system";
 let frameMounted = false;
 let busy = false;
+/** 最近一次看到的运行中服务是否由桌面端不可管理的外部环境(如 WSL)承载 */
+let externalLastSeen = false;
 const logLines: string[] = [];
 
 const STATUS_LABEL: Record<WebStatus, string> = {
   notInstalled: "未安装 dsh",
-  stopped: "dsh web 未启动",
-  starting: "dsh web 启动中…",
-  running: "dsh web 运行中",
-  failed: "dsh web 异常",
+  stopped: "DeepSeek Harness 未启动",
+  starting: "DeepSeek Harness 启动中…",
+  running: "DeepSeek Harness 运行中",
+  failed: "DeepSeek Harness 异常",
 };
 
 function appendLog(source: string, line: string) {
@@ -162,7 +168,9 @@ function renderStatusBar() {
   if (status.update.updateAvailable) parts.push("有新版本");
   versionText.textContent = parts.length ? parts.join(" · ") : "版本未知";
   btnUpgrade.classList.toggle("hidden", !status.update.updateAvailable);
-  btnRestart.classList.toggle("hidden", !(st === "running" && status.owned));
+  btnRestart.classList.toggle("hidden", st !== "running");
+  btnStop.classList.toggle("hidden", st !== "running");
+  externalLastSeen = st === "running" && !status.managed;
   btnBrowser.disabled = st !== "running";
 }
 
@@ -233,7 +241,7 @@ async function ensureRunning() {
     return;
   }
   if (s.webStatus === "starting") {
-    showOverlay({ title: "dsh web 启动中…", spinner: true });
+    showOverlay({ title: "DeepSeek Harness 启动中…", spinner: true });
     return;
   }
   await startDsh();
@@ -253,15 +261,15 @@ async function runUpgrade(kind: "install" | "upgrade") {
     handleUpdate(info);
     hideToast();
     const s = await refreshStatus();
-    if (s.webStatus === "running" && s.owned) {
-      showOverlay({ title: "升级完成,正在重启 dsh web…", spinner: true });
+    if (s.webStatus === "running" && s.managed) {
+      showOverlay({ title: "升级完成,正在重启 DeepSeek Harness…", spinner: true });
       unmountFrame();
       await invoke("restart_dsh");
       await refreshStatus();
     } else if (s.webStatus === "running") {
       showOverlay({
         title: "升级完成",
-        desc: "当前 dsh web 由外部启动,重启该服务后新版本生效。",
+        desc: "当前 DeepSeek Harness 服务由外部启动,重启该服务后新版本生效。",
         retry: true,
       });
     } else {
@@ -275,11 +283,21 @@ async function runUpgrade(kind: "install" | "upgrade") {
 }
 
 async function restartDsh() {
+  if (!status?.managed) {
+    const holder = status?.externalProcess
+      ? `端口由 ${status.externalProcess} 提供`
+      : "端口由外部进程提供";
+    showOverlay({
+      title: "无法从此处重启",
+      desc: `当前 DeepSeek Harness 不是桌面端可管理的本机 node 进程(${holder},可能运行在 WSL 中)。请在原环境中重启该服务,应用每 5 秒自动检测,恢复后会自动重新挂载。`,
+    });
+    return;
+  }
   if (busy) return;
   busy = true;
   try {
     clearLogs();
-    showOverlay({ title: "正在重启 dsh web…", spinner: true });
+    showOverlay({ title: "正在重启 DeepSeek Harness…", spinner: true });
     unmountFrame();
     await invoke("restart_dsh");
     await refreshStatus();
@@ -290,8 +308,33 @@ async function restartDsh() {
   }
 }
 
+async function stopDsh() {
+  if (!status?.managed) {
+    const holder = status?.externalProcess
+      ? `端口由 ${status.externalProcess} 提供`
+      : "端口由外部进程提供";
+    showOverlay({
+      title: "无法从此处停止",
+      desc: `当前 DeepSeek Harness 不是桌面端可管理的本机 node 进程(${holder},可能运行在 WSL 中)。请在原环境(如 WSL)中停止该服务;应用会自动检测,服务停止后状态会更新。`,
+    });
+    return;
+  }
+  if (busy) return;
+  busy = true;
+  try {
+    showOverlay({ title: "正在停止 DeepSeek Harness…", spinner: true });
+    await invoke("stop_dsh");
+    await refreshStatus();
+  } catch (e) {
+    showOverlay({ title: "停止失败", desc: String(e), retry: true });
+  } finally {
+    busy = false;
+  }
+}
+
 async function onWebStatusChanged(st: WebStatus) {
   if (status) status.webStatus = st;
+  const wasExternal = externalLastSeen;
   renderStatusBar();
   switch (st) {
     case "running":
@@ -299,13 +342,13 @@ async function onWebStatusChanged(st: WebStatus) {
       break;
     case "starting":
       if (overlay.classList.contains("hidden")) {
-        showOverlay({ title: "dsh web 启动中…", spinner: true });
+        showOverlay({ title: "DeepSeek Harness 启动中…", spinner: true });
       }
       break;
     case "failed": {
       const s = await refreshStatus();
       showOverlay({
-        title: "dsh web 启动失败",
+        title: "DeepSeek Harness 启动失败",
         desc: s.failedReason ?? "请查看下方日志",
         retry: true,
       });
@@ -314,8 +357,10 @@ async function onWebStatusChanged(st: WebStatus) {
     case "stopped":
       unmountFrame();
       showOverlay({
-        title: "dsh web 已停止",
-        desc: "点击重试重新启动 dsh web",
+        title: "DeepSeek Harness 已停止",
+        desc: wasExternal
+          ? "该服务原由外部启动(如 WSL)。请在原环境中重新启动,应用会自动挂载;或点击重试,由桌面端在本机启动 DeepSeek Harness。"
+          : "点击重试重新启动 DeepSeek Harness",
         retry: true,
       });
       break;
@@ -383,6 +428,7 @@ async function boot() {
   btnCheck.addEventListener("click", checkNow);
   btnUpgrade.addEventListener("click", () => void runUpgrade("upgrade"));
   btnRestart.addEventListener("click", () => void restartDsh());
+  btnStop.addEventListener("click", () => void stopDsh());
   btnBrowser.addEventListener("click", () => void invoke("open_in_browser").catch(() => undefined));
   toastUpgrade.addEventListener("click", () => void runUpgrade("upgrade"));
   toastLater.addEventListener("click", () => {

@@ -29,3 +29,5 @@ acceptance/
 
 # 打包输出
 release/
+
+.zcode

@@ -1,9 +1,9 @@
 (function () {
   "use strict";
-  // Run ONLY in the dsh web frame (the direct child of the Tauri shell page):
-  // skip the shell itself (self === top) and any deeper iframes the dsh web
-  // app embeds (plugin browser tabs, HTML previews), so the title bar and the
-  // layout overrides never leak into embedded third-party pages.
+  // Run ONLY in the DeepSeek Harness web frame (the direct child of the Tauri
+  // shell page): skip the shell itself (self === top) and any deeper iframes
+  // the web app embeds (plugin browser tabs, HTML previews), so the title bar
+  // and the layout overrides never leak into embedded third-party pages.
   if (window.self === window.top || window.parent !== window.top) return;
 
   // ── Communicate with the parent (Tauri webview) via postMessage ──

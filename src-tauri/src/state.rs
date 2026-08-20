@@ -8,7 +8,8 @@ use std::sync::Mutex;
 /// threads (status poller, theme watcher, periodic updater) and command
 /// handlers touch the same state concurrently.
 pub struct AppState {
-    /// The dsh web child process we spawned, if any. Only a process recorded
+    /// The DeepSeek Harness web child process we spawned, if any. Only a process
+    /// recorded
     /// here counts as "owned" and gets killed on exit / stop / restart.
     pub child: Mutex<Option<DshProcess>>,
     /// Why the last spawn attempt failed, when the server is down.

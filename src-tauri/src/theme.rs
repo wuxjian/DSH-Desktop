@@ -125,7 +125,7 @@ mod tests {
     impl TempSettings {
         fn new(name: &str) -> Self {
             let dir = std::env::temp_dir()
-                .join(format!("dsh-desktop-test-{}-{name}", std::process::id()));
+                .join(format!("deepseek-harness-test-{}-{name}", std::process::id()));
             let _ = std::fs::remove_dir_all(&dir);
             std::fs::create_dir_all(&dir).unwrap();
             Self { dir }
